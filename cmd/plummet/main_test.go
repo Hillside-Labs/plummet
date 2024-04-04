@@ -1,5 +1,6 @@
 package main
 
+import "github.com/stretchr/testify/assert"
 import (
 	"testing"
 )
@@ -14,9 +15,6 @@ func TestCircularDependencyDetection(t *testing.T) {
 
 	visited := make(map[string]bool)
 	err := executeTarget("target1", &circularPlummetFile, visited)
-	if err == nil {
-		t.Errorf("Expected a circular dependency error, but got none")
-	} else if !strings.Contains(err.Error(), "circular dependency detected") {
-		t.Errorf("Expected a circular dependency error, got: %v", err)
-	}
+	assert.NotNil(t, err, "Expected a circular dependency error, but got none")
+	assert.Contains(t, err.Error(), "circular dependency detected", "Expected a circular dependency error, got: %v", err)
 }
