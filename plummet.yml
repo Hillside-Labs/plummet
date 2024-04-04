@@ -1,0 +1,17 @@
+targets:
+  build_database:
+    output: "build_output.log"
+    sql: "CREATE DATABASE test_db;"
+    deps: []
+  create_table:
+    output: "create_table_output.log"
+    sql: "CREATE TABLE test_table(id INT PRIMARY KEY, name VARCHAR(100));"
+    deps: ["build_database"]
+  insert_data:
+    output: "insert_data_output.log"
+    sql: "INSERT INTO test_table (id, name) VALUES (1, 'Test Name');"
+    deps: ["create_table"]
+  drop_database:
+    output: "drop_database_output.log"
+    sql: "DROP DATABASE test_db;"
+    deps: []
