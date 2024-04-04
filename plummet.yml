@@ -4,9 +4,8 @@ targets:
       INSTALL POSTGRES;
       LOAD POSTGRES;
     deps: []
-  create_table:
-    output: "create_table_output.log"
-    sql: "CREATE TABLE test_table(id INT PRIMARY KEY, name VARCHAR(100));"
+  attach_events_as_events:
+    sql: "ATTACH { .PG_DBURI } as events (TYPE postgres, READ_ONLY);"
     deps: ["build_database"]
   insert_data:
     output: "insert_data_output.log"
