@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"strings"
 	"os"
 
 	"github.com/urfave/cli/v2"
