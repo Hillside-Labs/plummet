@@ -3,6 +3,9 @@ targets:
     sql: |
       INSTALL POSTGRES;
       LOAD POSTGRES;
+  attach_events_as_events:
+    config:
+      PG_DBURI: "postgres://timescaledb:password@localhost/userup_userervice"
     deps: []
   attach_events_as_events:
     sql: "ATTACH { .PG_DBURI } as events (TYPE postgres, READ_ONLY);"
