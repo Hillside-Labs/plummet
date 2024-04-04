@@ -21,6 +21,12 @@ type PlummetFile struct {
 }
 
 func executeTarget(targetName string, plummetFile *PlummetFile) error {
+func executeTarget(targetName string, plummetFile *PlummetFile, visited map[string]bool) error {
+	if visited[targetName] {
+		return fmt.Errorf("circular dependency detected on target '%s'", targetName)
+	}
+	visited[targetName] = true
+
 	target, ok := plummetFile.Targets[targetName]
 	if !ok {
 		return fmt.Errorf("target '%s' not found", targetName)
@@ -28,7 +34,7 @@ func executeTarget(targetName string, plummetFile *PlummetFile) error {
 
 	// Execute dependencies first
 	for _, dep := range target.Deps {
-		err := executeTarget(dep, plummetFile)
+		err := executeTarget(dep, plummetFile, visited)
 		if err != nil {
 			return fmt.Errorf("failed to execute dependency '%s' for target '%s': %v", dep, targetName, err)
 		}
@@ -37,6 +43,7 @@ func executeTarget(targetName string, plummetFile *PlummetFile) error {
 	// Here you would add the logic to execute the SQL against the database
 	// and handle the output, for now we just print the SQL to be executed.
 	fmt.Printf("Executing SQL for target %s: %s\n", targetName, target.SQL)
+	visited[targetName] = false
 
 	return nil
 }
@@ -64,7 +71,8 @@ func main() {
 
 			if c.Args().Len() > 0 {
 				targetName := c.Args().Get(0)
-				err := executeTarget(targetName, &plummetFile)
+				visited := make(map[string]bool)
+				err := executeTarget(targetName, &plummetFile, visited)
 				if err != nil {
 					log.Fatal(err)
 				}
