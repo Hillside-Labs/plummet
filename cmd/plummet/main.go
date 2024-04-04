@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 	"os"
 
 	"github.com/urfave/cli/v2"
@@ -17,6 +18,19 @@ type Target struct {
 
 type PlummetFile struct {
 	Targets map[string]Target `yaml:"targets"`
+}
+
+func executeTarget(targetName string, plummetFile *PlummetFile) error {
+	target, ok := plummetFile.Targets[targetName]
+	if !ok {
+		return fmt.Errorf("target %s not found", targetName)
+	}
+
+	// Here you would add the logic to execute the SQL against the database
+	// and handle the output, for now we just print the SQL to be executed.
+	fmt.Printf("Executing SQL for target %s: %s\n", targetName, target.SQL)
+
+	return nil
 }
 
 func main() {
@@ -38,6 +52,14 @@ func main() {
 			fmt.Println("Available targets:")
 			for target := range plummetFile.Targets {
 				fmt.Println(target)
+			}
+
+			if c.Args().Len() > 0 {
+				targetName := c.Args().Get(0)
+				err := executeTarget(targetName, &plummetFile)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 
 			return nil
