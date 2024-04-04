@@ -23,7 +23,15 @@ type PlummetFile struct {
 func executeTarget(targetName string, plummetFile *PlummetFile) error {
 	target, ok := plummetFile.Targets[targetName]
 	if !ok {
-		return fmt.Errorf("target %s not found", targetName)
+		return fmt.Errorf("target '%s' not found", targetName)
+	}
+
+	// Execute dependencies first
+	for _, dep := range target.Deps {
+		err := executeTarget(dep, plummetFile)
+		if err != nil {
+			return fmt.Errorf("failed to execute dependency '%s' for target '%s': %v", dep, targetName, err)
+		}
 	}
 
 	// Here you would add the logic to execute the SQL against the database
