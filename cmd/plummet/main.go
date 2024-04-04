@@ -20,7 +20,6 @@ type PlummetFile struct {
 	Targets map[string]Target `yaml:"targets"`
 }
 
-func executeTarget(targetName string, plummetFile *PlummetFile) error {
 func executeTarget(targetName string, plummetFile *PlummetFile, visited map[string]bool) error {
 	if visited[targetName] {
 		return fmt.Errorf("circular dependency detected on target '%s'", targetName)
@@ -80,9 +79,7 @@ func main() {
 
 			return nil
 		},
-	}
-
-	err := app.Run(os.Args)
+		err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
