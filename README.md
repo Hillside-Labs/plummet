@@ -42,4 +42,4 @@ The `targets` defines the different targets you can run. Each target can have a 
 
 ## Why "plummet"?
 
-Pipeline are "plumbing", so "plummet" sounds like "plumb it".
+Pipelines are "plumbing", so "plummet" is a subtle reference to "plumb it".
