@@ -1,10 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
-	"database/sql"
 
 	_ "github.com/marcboeker/go-duckdb"
 
@@ -36,14 +36,12 @@ func executeTarget(targetName string, plummetFile *PlummetFile, visited map[stri
 
 	// Execute dependencies first
 	for _, dep := range target.Deps {
-		err := executeTarget(dep, plummetFile, visited)
+		err := executeTarget(dep, plummetFile, visited, db)
 		if err != nil {
 			return fmt.Errorf("failed to execute dependency '%s' for target '%s': %v", dep, targetName, err)
 		}
 	}
 
-	// Here you would add the logic to execute the SQL against the database
-	// and handle the output, for now we just print the SQL to be executed.
 	_, err := db.Exec(target.SQL)
 	if err != nil {
 		return fmt.Errorf("failed to execute SQL for target '%s': %v", targetName, err)
@@ -89,7 +87,6 @@ func main() {
 			if c.Args().Len() > 0 {
 				targetName := c.Args().First()
 				visited := make(map[string]bool)
-				err := executeTarget(targetName, &plummetFile, visited, db)
 				err := executeTarget(targetName, &plummetFile, visited, db)
 				if err != nil {
 					log.Fatal(err)
