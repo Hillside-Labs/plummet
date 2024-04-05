@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"bytes"
+	"text/template"
 	"log"
 	"os"
 
@@ -44,8 +46,21 @@ func executeTarget(targetName string, plummetFile *PlummetFile, visited map[stri
 	}
 
 	_, err := db.Exec(target.SQL)
+	tmpl, err := template.New("sql").Parse(target.SQL)
 	if err != nil {
-		return fmt.Errorf("failed to execute SQL for target '%s': %v", targetName, err)
+		return fmt.Errorf("failed to parse SQL template for target '%s': %v", targetName, err)
+	}
+
+	var sqlBuffer bytes.Buffer
+	err = tmpl.Execute(&sqlBuffer, target.Config)
+	if err != nil {
+		return fmt.Errorf("failed to execute SQL template for target '%s': %v", targetName, err)
+	}
+
+	executedSQL := sqlBuffer.String()
+	_, err = db.Exec(executedSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute SQL for target '%s' with SQL: %s, error: %v", targetName, executedSQL, err)
 	}
 	fmt.Printf("Successfully executed SQL for target %s\n", targetName)
 	visited[targetName] = false
