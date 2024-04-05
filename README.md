@@ -30,7 +30,6 @@ targets:
     sql: "ATTACH '{{ .PG_DBURI }}' as db (TYPE postgres, READ_ONLY);"
     deps: ["setup_postgres"]
   save_events:
-    output: "events.parquet"
     sql: "COPY db.events TO 'events.parquet' (FORMAT PARQUET);"
     deps: ["get_events"]
 ```
@@ -39,7 +38,6 @@ The `targets` defines the different targets you can run. Each target can have a 
 
 - `sql` is the SQL code you want to run. DuckDB exposes a lot of powerful capabilities, with the simple example above showing how to grab data from a Postgres DB and write a Parquet file.
 - `deps` is a list of targets that are required before this target can be run.
-- `output` allows defining an output for later use. This isn't leveraged at the moment.
 - `config` allows you to set variables that can be used in the SQL.
 
 ## Why "plummet"?

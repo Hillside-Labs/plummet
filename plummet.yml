@@ -9,6 +9,5 @@ targets:
     sql: "ATTACH '{{ .PG_DBURI }}' as db (TYPE postgres, READ_ONLY);"
     deps: ["setup_postgres"]
   save_events:
-    output: "events.parquet"
     sql: "COPY db.events TO 'events.parquet' (FORMAT PARQUET);"
     deps: ["get_events"]
