@@ -6,7 +6,7 @@ import (
 	"os"
 	"database/sql"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/marcboeker/go-duckdb"
 
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v2"
