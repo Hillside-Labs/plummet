@@ -16,6 +16,7 @@ type Target struct {
 	Output string   `yaml:"output"`
 	SQL    string   `yaml:"sql"`
 	Deps   []string `yaml:"deps"`
+	Config map[string]interface{} `yaml:"config"`
 }
 
 type PlummetFile struct {
