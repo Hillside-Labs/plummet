@@ -3,18 +3,12 @@ targets:
     sql: |
       INSTALL POSTGRES;
       LOAD POSTGRES;
-  attach_events_as_events:
+  get_events:
     config:
-      PG_DBURI: "postgres://timescaledb:password@localhost/userup_userervice"
-    deps: []
-  attach_events_as_events:
-    sql: "ATTACH { .PG_DBURI } as events (TYPE postgres, READ_ONLY);"
-    deps: ["build_database"]
-  insert_data:
-    output: "insert_data_output.log"
-    sql: "INSERT INTO test_table (id, name) VALUES (1, 'Test Name');"
-    deps: ["create_table"]
-  drop_database:
-    output: "drop_database_output.log"
-    sql: "DROP DATABASE test_db;"
-    deps: []
+      PG_DBURI: "postgres://timescaledb:password@localhost/userup_userservice"
+    sql: "ATTACH '{{ .PG_DBURI }}' as db (TYPE postgres, READ_ONLY);"
+    deps: ["setup_postgres"]
+  save_events:
+    output: "events.parquet"
+    sql: "COPY db.events TO 'events.parquet' (FORMAT PARQUET);"
+    deps: ["get_events"]
