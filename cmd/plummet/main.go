@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"database/sql"
+
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v2"
@@ -19,7 +22,7 @@ type PlummetFile struct {
 	Targets map[string]Target `yaml:"targets"`
 }
 
-func executeTarget(targetName string, plummetFile *PlummetFile, visited map[string]bool) error {
+func executeTarget(targetName string, plummetFile *PlummetFile, visited map[string]bool, db *sql.DB) error {
 	if visited[targetName] {
 		return fmt.Errorf("circular dependency detected on target '%s'", targetName)
 
@@ -41,7 +44,11 @@ func executeTarget(targetName string, plummetFile *PlummetFile, visited map[stri
 
 	// Here you would add the logic to execute the SQL against the database
 	// and handle the output, for now we just print the SQL to be executed.
-	fmt.Printf("Executing SQL for target %s: %s\n", targetName, target.SQL)
+	_, err := db.Exec(target.SQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute SQL for target '%s': %v", targetName, err)
+	}
+	fmt.Printf("Successfully executed SQL for target %s\n", targetName)
 	visited[targetName] = false
 
 	return nil
@@ -72,6 +79,12 @@ func main() {
 			}
 
 			dbFile := c.String("dbfile")
+
+			db, err := sql.Open("duckdb", dbFile)
+			if err != nil {
+				log.Fatalf("Unable to open database file: %v", err)
+			}
+			defer db.Close()
 
 			if c.Args().Len() > 0 {
 				targetName := c.Args().First()
