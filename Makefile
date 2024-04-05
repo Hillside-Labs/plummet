@@ -5,7 +5,7 @@ plummet: $(SRC)
 	go build ./cmd/plummet
 
 release:
-	we goreleaser
+	we goreleaser --clean
 
 .PHONY: goreleaser
 goreleaser: nfpm
