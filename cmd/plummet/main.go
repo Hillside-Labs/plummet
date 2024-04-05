@@ -90,6 +90,7 @@ func main() {
 				targetName := c.Args().First()
 				visited := make(map[string]bool)
 				err := executeTarget(targetName, &plummetFile, visited, db)
+				err := executeTarget(targetName, &plummetFile, visited, db)
 				if err != nil {
 					log.Fatal(err)
 				}
