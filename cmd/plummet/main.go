@@ -22,6 +22,7 @@ type PlummetFile struct {
 func executeTarget(targetName string, plummetFile *PlummetFile, visited map[string]bool) error {
 	if visited[targetName] {
 		return fmt.Errorf("circular dependency detected on target '%s'", targetName)
+
 	}
 	visited[targetName] = true
 
@@ -62,17 +63,17 @@ func main() {
 				log.Fatalf("Unable to parse plummet.yml: %v", err)
 			}
 
-			fmt.Println("Available targets:")
-			for target := range plummetFile.Targets {
-				fmt.Println(target)
-			}
-
 			if c.Args().Len() > 0 {
-				targetName := c.Args().Get(0)
+				targetName := c.Args().First()
 				visited := make(map[string]bool)
 				err := executeTarget(targetName, &plummetFile, visited)
 				if err != nil {
 					log.Fatal(err)
+				}
+			} else {
+				fmt.Println("Available targets:")
+				for target := range plummetFile.Targets {
+					fmt.Println(target)
 				}
 			}
 
