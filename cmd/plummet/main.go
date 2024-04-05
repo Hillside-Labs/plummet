@@ -51,6 +51,14 @@ func main() {
 	app := &cli.App{
 		Name:  "plummet",
 		Usage: "A build system that runs SQL against a database",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "dbfile",
+				Value:   "plummet.db",
+				Usage:   "DuckDB database file",
+				Aliases: []string{"d"},
+			},
+		},
 		Action: func(c *cli.Context) error {
 			file, err := os.ReadFile("plummet.yml")
 			if err != nil {
@@ -62,6 +70,8 @@ func main() {
 			if err != nil {
 				log.Fatalf("Unable to parse plummet.yml: %v", err)
 			}
+
+			dbFile := c.String("dbfile")
 
 			if c.Args().Len() > 0 {
 				targetName := c.Args().First()
