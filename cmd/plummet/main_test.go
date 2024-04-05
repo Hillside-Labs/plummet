@@ -14,7 +14,8 @@ func TestCircularDependencyDetection(t *testing.T) {
 	}
 
 	visited := make(map[string]bool)
-	err := executeTarget("target1", &circularPlummetFile, visited)
+	db, _ := sql.Open("duckdb", ":memory:")
+	err := executeTarget("target1", &circularPlummetFile, visited, db)
 	assert.NotNil(t, err, "Expected a circular dependency error, but got none")
 	assert.Contains(t, err.Error(), "circular dependency detected", "Expected a circular dependency error, got: %v", err)
 }
