@@ -94,7 +94,7 @@ func executeTarget(targetName string, plummetFile *PlummetFile, visited map[stri
 			for i, colName := range columns {
 				result[colName] = *(values[i].(*interface{}))
 			}
-			outputs[targetName+"."+target.Output] = result
+			outputs[target.Output] = result
 		}
 		if err = rows.Err(); err != nil {
 			return fmt.Errorf("error iterating through results for target '%s': %v", targetName, err)
