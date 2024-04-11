@@ -112,6 +112,12 @@ func main() {
 		Usage: "A build system that runs SQL against a database",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
+				Name:    "config",
+				Value:   "plummet.yml",
+				Usage:   "Configuration file for plummet",
+				Aliases: []string{"c"},
+			},
+			&cli.StringFlag{
 				Name:    "dbfile",
 				Value:   "plummet.db",
 				Usage:   "DuckDB database file",
@@ -119,15 +125,16 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			file, err := os.ReadFile("plummet.yml")
+			configFile := c.String("config")
+			file, err := os.ReadFile(configFile)
 			if err != nil {
-				log.Fatalf("Unable to read plummet.yml: %v", err)
+				log.Fatalf("Unable to read config file '%s': %v", configFile, err)
 			}
 
 			var plummetFile PlummetFile
 			err = yaml.Unmarshal(file, &plummetFile)
 			if err != nil {
-				log.Fatalf("Unable to parse plummet.yml: %v", err)
+				log.Fatalf("Unable to parse config file '%s': %v", configFile, err)
 			}
 
 			dbFile := c.String("dbfile")
