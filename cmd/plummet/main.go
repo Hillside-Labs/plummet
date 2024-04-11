@@ -77,11 +77,22 @@ func executeTarget(targetName string, plummetFile *PlummetFile, visited map[stri
 			return fmt.Errorf("failed to query SQL for target '%s' with SQL: %s, error: %v", targetName, executedSQL, err)
 		}
 		defer rows.Close()
-		var result interface{}
+		columns, err := rows.Columns()
+		if err != nil {
+			return fmt.Errorf("failed to get columns for target '%s': %v", targetName, err)
+		}
+		values := make([]interface{}, len(columns))
+		result := make(map[string]interface{})
+		for i := range values {
+			values[i] = new(interface{})
+		}
 		if rows.Next() {
-			err = rows.Scan(&result)
+			err = rows.Scan(values...)
 			if err != nil {
 				return fmt.Errorf("failed to scan result for target '%s': %v", targetName, err)
+			}
+			for i, colName := range columns {
+				result[colName] = *(values[i].(*interface{}))
 			}
 			outputs[targetName+"."+target.Output] = result
 		}
