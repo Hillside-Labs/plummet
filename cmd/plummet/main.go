@@ -66,12 +66,28 @@ func executeTarget(targetName string, plummetFile *PlummetFile, visited map[stri
 	}
 
 	executedSQL := sqlBuffer.String()
-	_, err = db.Exec(executedSQL)
-	if err != nil {
-		return fmt.Errorf("failed to execute SQL for target '%s' with SQL: %s, error: %v", targetName, executedSQL, err)
-	}
-	if target.Output != "" {
-		outputs[targetName+"."+target.Output] = executedSQL
+	if target.Output == "" {
+		_, err = db.Exec(executedSQL)
+		if err != nil {
+			return fmt.Errorf("failed to execute SQL for target '%s' with SQL: %s, error: %v", targetName, executedSQL, err)
+		}
+	} else {
+		rows, err := db.Query(executedSQL)
+		if err != nil {
+			return fmt.Errorf("failed to query SQL for target '%s' with SQL: %s, error: %v", targetName, executedSQL, err)
+		}
+		defer rows.Close()
+		var result interface{}
+		if rows.Next() {
+			err = rows.Scan(&result)
+			if err != nil {
+				return fmt.Errorf("failed to scan result for target '%s': %v", targetName, err)
+			}
+			outputs[targetName+"."+target.Output] = result
+		}
+		if err = rows.Err(); err != nil {
+			return fmt.Errorf("error iterating through results for target '%s': %v", targetName, err)
+		}
 	}
 	fmt.Printf("Successfully executed SQL for target %s\n", targetName)
 	visited[targetName] = false
