@@ -1,12 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
-	"bytes"
-	"text/template"
 	"log"
 	"os"
+	"text/template"
 
 	_ "github.com/marcboeker/go-duckdb"
 
@@ -15,9 +15,9 @@ import (
 )
 
 type Target struct {
-	Output string   `yaml:"output"`
-	SQL    string   `yaml:"sql"`
-	Deps   []string `yaml:"deps"`
+	Output string                 `yaml:"output"`
+	SQL    string                 `yaml:"sql"`
+	Deps   []string               `yaml:"deps"`
 	Config map[string]interface{} `yaml:"config"`
 }
 
@@ -25,7 +25,7 @@ type PlummetFile struct {
 	Targets map[string]Target `yaml:"targets"`
 }
 
-func executeTarget(targetName string, plummetFile *PlummetFile, visited map[string]bool, db *sql.DB) error {
+func executeTarget(targetName string, plummetFile *PlummetFile, visited map[string]bool, db *sql.DB, outputs map[string]interface{}) error {
 	if visited[targetName] {
 		return fmt.Errorf("circular dependency detected on target '%s'", targetName)
 
@@ -39,20 +39,28 @@ func executeTarget(targetName string, plummetFile *PlummetFile, visited map[stri
 
 	// Execute dependencies first
 	for _, dep := range target.Deps {
-		err := executeTarget(dep, plummetFile, visited, db)
+		err := executeTarget(dep, plummetFile, visited, db, outputs)
 		if err != nil {
 			return fmt.Errorf("failed to execute dependency '%s' for target '%s': %v", dep, targetName, err)
 		}
 	}
 
-	_, err := db.Exec(target.SQL)
+	// Merge target-specific config with the outputs from dependencies
+	config := make(map[string]interface{})
+	for k, v := range target.Config {
+		config[k] = v
+	}
+	for k, v := range outputs {
+		config[k] = v
+	}
+
 	tmpl, err := template.New("sql").Parse(target.SQL)
 	if err != nil {
 		return fmt.Errorf("failed to parse SQL template for target '%s': %v", targetName, err)
 	}
 
 	var sqlBuffer bytes.Buffer
-	err = tmpl.Execute(&sqlBuffer, target.Config)
+	err = tmpl.Execute(&sqlBuffer, config)
 	if err != nil {
 		return fmt.Errorf("failed to execute SQL template for target '%s': %v", targetName, err)
 	}
@@ -61,6 +69,9 @@ func executeTarget(targetName string, plummetFile *PlummetFile, visited map[stri
 	_, err = db.Exec(executedSQL)
 	if err != nil {
 		return fmt.Errorf("failed to execute SQL for target '%s' with SQL: %s, error: %v", targetName, executedSQL, err)
+	}
+	if target.Output != "" {
+		outputs[targetName+"."+target.Output] = executedSQL
 	}
 	fmt.Printf("Successfully executed SQL for target %s\n", targetName)
 	visited[targetName] = false
@@ -103,7 +114,8 @@ func main() {
 			if c.Args().Len() > 0 {
 				targetName := c.Args().First()
 				visited := make(map[string]bool)
-				err := executeTarget(targetName, &plummetFile, visited, db)
+				outputs := make(map[string]interface{})
+				err := executeTarget(targetName, &plummetFile, visited, db, outputs)
 				if err != nil {
 					log.Fatal(err)
 				}
