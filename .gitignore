@@ -3,3 +3,5 @@ devenv.yml
 plummet
 plummet.db
 dist
+
+.DS_Store
